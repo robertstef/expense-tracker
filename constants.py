@@ -14,22 +14,31 @@ class CsvCols(object):
 
 
 class Categories(object):
-    all = [('phone', 'p'),
-           ('internet', 'i'),
-           ('loans', 'l'),
-           ('utilities', 'u'),
-           ('gas', 'g'),
-           ('groceries', 'gr'),
-           ('vehicle', 'v'),
-           ('entertainment', 'e'),
-           ('extras', 'ex'),
-           ('clothing', 'c'),
-           ('subscriptions', 's'),
-           ('restaurants', 'r')]
+    all = ['phone',
+           'internet',
+           'loans',
+           'utilities',
+           'gas',
+           'groceries',
+           'vehicle',
+           'entertainment',
+           'extras',
+           'clothing',
+           'subscriptions',
+           'restaurants']
 
     def __init__(self):
-        self.full_to_short = {f: s for f, s in self.all}
-        self.short_to_full = {s: f for f, s in self.all}
+        self.full_to_short = dict()
+        self.short_to_full = dict()
+
+        for full_name in sorted(self.all):
+            shortcut = ''
+            for letter in full_name:
+                shortcut += letter
+                if shortcut not in self.short_to_full:
+                    break
+            self.full_to_short[full_name] = shortcut
+            self.short_to_full[shortcut] = full_name
 
     def is_valid(self, category):
         return category in self.full_to_short or category in self.short_to_full
@@ -43,6 +52,6 @@ class Categories(object):
             return None
 
     def print_categories(self):
-        for full, short in sorted(self.all, key=lambda x: x[0]):
+        for full, short in sorted(self.full_to_short.items()):
             print('- {} ({})'.format(full, short))
         print()
