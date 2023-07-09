@@ -46,4 +46,4 @@ if __name__ == '__main__':
     expense_dfs = get_expense_data(args)
     connection, cursor = connect_db(args.database)
     skipped = categorize_expenses(expense_dfs, connection, cursor)
-    calculate_categorical_expenses(expense_dfs, skipped)
+    calculate_categorical_expenses(expense_dfs, skipped, cursor)

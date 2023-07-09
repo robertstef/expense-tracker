@@ -1,8 +1,9 @@
 import os
 import pandas as pd
+from collections import defaultdict
 from constants import CsvCols, Categories
-from db_functions import add_vendors_to_db, get_vendors_to_add
-
+from db_functions import add_vendors_to_db, get_vendors_to_add, map_vendors_to_categories
+from tabulate import tabulate
 
 def get_expense_data(args):
     """
@@ -40,7 +41,8 @@ def categorize_expenses(expense_dfs, connection, cursor):
     :param List[pd.DataFrame] expense_dfs: expenses to categorize
     :param sqlite3.Connection connection: connection to expense database
     :param sqlite3.Cursor cursor: cursor pointing to expense database
-
+    :return: the set of all skipped vendors
+    :rtype: Set[str]
     """
     all_skipped = list()
     for df in expense_dfs:
@@ -54,11 +56,33 @@ def categorize_expenses(expense_dfs, connection, cursor):
 
         all_skipped.extend(skipped)
 
-    return all_skipped
+    return set(all_skipped)
 
 
-def calculate_categorical_expenses(dfs, skipped):
-    pass
+def calculate_categorical_expenses(expense_dfs, skipped, cursor):
+    """
+    Calculates the expenses for each category for each dataframe provided and
+    prints the results to the terminal.
+    :param List[pandas.DataFrame] expense_dfs: set of dataframe to calculate expenses for
+    :param Set[str] skipped: vendor to be skipped
+    :param sqlit3.Cursor cursor: cursor pointing to expense database
+    """
+    for df in expense_dfs:
+        debit_totals = defaultdict(float)
+        credit_totals = defaultdict(float)
+        vendors = [vendor for vendor in list(df[CsvCols.VENDOR]) if vendor not in skipped]
+        vendors_to_categories = map_vendors_to_categories(cursor, vendors)
+
+        for _, date, vendor, debit, credit, balance in df.itertuples():
+            if vendor in skipped:
+                continue
+            category = vendors_to_categories[vendor]
+            debit_totals[category] += debit
+            credit_totals[category] -= credit
+
+        expense_table = [(category, str(debit_totals[category]), credit_totals[category])
+                         for category in sorted(debit_totals.keys())]
+        print(tabulate(expense_table, headers=['Category', 'Debit', 'Credit']))
 
 
 def _parse_expense_csvs(csvs):
@@ -103,6 +127,7 @@ def _parse_expense_csvs(csvs):
 def _add_vendor_repl(vendors_to_add):
     """
     A repl that will prompt the user to categorize the given vendors.
+
     :param List[str] vendors_to_add: list of vendors that need to be categorized
     :return: A list of tuples of vendors and their categories where each tuple is
              of the form (vendor, category) and a list of the skipped vendors.
@@ -130,6 +155,7 @@ def _add_vendor_repl(vendors_to_add):
 
         if res == 'skip' or res == 'sk':
             skipped.append(vendor)
+            i += 1
             continue
 
         if res == 'exit':
@@ -149,5 +175,3 @@ def _add_vendor_repl(vendors_to_add):
         i += 1
 
     return vendors_and_categories, skipped
-
-

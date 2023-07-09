@@ -25,7 +25,8 @@ class Categories(object):
            'extras',
            'clothing',
            'subscriptions',
-           'restaurants']
+           'restaurants',
+           'insurance']
 
     def __init__(self):
         self.full_to_short = dict()

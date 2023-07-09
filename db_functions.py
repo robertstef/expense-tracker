@@ -46,3 +46,14 @@ def get_vendors_to_add(df, cursor):
 def add_vendors_to_db(connection, cursor, categorized_vendors):
     cursor.executemany('INSERT INTO expenses VALUES(?, ?)', categorized_vendors)
     connection.commit()
+
+
+def map_vendors_to_categories(cursor, vendors):
+    vendors_to_categories = dict()
+    for vendor in vendors:
+        category = cursor.execute('SELECT category FROM expenses WHERE vendor == ?', (vendor,)).fetchone()
+        if len(category) != 1:
+            continue
+        vendors_to_categories[vendor] = category[0]
+
+    return vendors_to_categories
