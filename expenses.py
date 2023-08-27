@@ -116,12 +116,13 @@ def _parse_expense_csvs(csvs):
         if not os.path.exists(abs_path):
             print("The file {} does not exist, this data will not be included.".format(csv))
             continue
-        expense_data.append(
-            pd.read_csv(abs_path,
-                        names=col_names,
-                        index_col=False,
-                        converters=converters)
-        )
+
+        df = pd.read_csv(abs_path,
+                         names=col_names,
+                         index_col=False,
+                         converters=converters)
+        df.drop_duplicates()
+        expense_data.append(df)
 
     if len(expense_data) == 0:
         exit(1)
