@@ -5,6 +5,7 @@ from constants import CsvCols, Categories
 from db_functions import add_vendors_to_db, get_vendors_to_add, map_vendors_to_categories
 from tabulate import tabulate
 
+
 def get_expense_data(args):
     """
     Reads in the expense data and parses it into a list dataframes.
@@ -80,8 +81,12 @@ def calculate_categorical_expenses(expense_dfs, skipped, cursor):
             debit_totals[category] += debit
             credit_totals[category] -= credit
 
-        expense_table = [(category, str(debit_totals[category]), credit_totals[category])
-                         for category in sorted(debit_totals.keys())]
+        expense_table = list()
+        for category in Categories.all():
+            debit = debit_totals[category] if category in debit_totals else 0
+            credit = credit_totals[category] if category in credit_totals else 0
+            expense_table.append((category, debit, credit))
+
         print(tabulate(expense_table, headers=['Category', 'Debit', 'Credit']))
 
 
