@@ -14,25 +14,25 @@ class CsvCols(object):
 
 
 class Categories(object):
-    all = ['phone',
-           'internet',
-           'loans',
-           'utilities',
-           'gas',
-           'groceries',
-           'vehicle',
-           'entertainment',
-           'extras',
-           'clothing',
-           'subscriptions',
-           'restaurants',
-           'insurance']
+    _all = ['phone',
+            'internet',
+            'loans',
+            'utilities',
+            'gas',
+            'groceries',
+            'vehicle',
+            'entertainment',
+            'extras',
+            'clothing',
+            'subscriptions',
+            'restaurants',
+            'insurance']
 
     def __init__(self):
         self.full_to_short = dict()
         self.short_to_full = dict()
 
-        for full_name in sorted(self.all):
+        for full_name in self._all:
             shortcut = ''
             for letter in full_name:
                 shortcut += letter
@@ -53,6 +53,10 @@ class Categories(object):
             return None
 
     def print_categories(self):
-        for full, short in sorted(self.full_to_short.items()):
+        for full, short in sorted(self.full_to_short.items(), key=lambda x: x[0]):
             print('- {} ({})'.format(full, short))
         print()
+
+    @classmethod
+    def all(cls) -> list:
+        return sorted(cls._all)
