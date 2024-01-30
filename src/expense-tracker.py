@@ -1,3 +1,5 @@
+#!/Users/robertstefanyshin/projects/expense-tracker/venv/bin/python
+
 import argparse
 
 from db_functions import connect_db
