@@ -1,7 +1,8 @@
 import argparse
-import os
-import pandas as pd
-import sqlite3
+
+from db_functions import connect_db
+from expenses import get_expense_data, categorize_expenses, calculate_categorical_expenses
+from constants import DEFAULT_DB
 
 
 def parse_args():
@@ -26,61 +27,23 @@ def parse_args():
                         help='The month to process in the given expense csv\'s. Must be an integer in the '
                              'range [1-12].')
 
+    parser.add_argument('-db', '--database',
+                        type=str,
+                        help='Path to database used for categorizing the inputted expenses.',
+                        default=DEFAULT_DB)
+
     parsed_args = parser.parse_args()
 
-    if not (1 <= parsed_args.month <= 12):
+    if parsed_args.month is not None and not (1 <= parsed_args.month <= 12):
         print('Error: month must be in range [1-12] but received value {}.'.format(parsed_args.month))
         exit(1)
 
     return parser.parse_args()
 
 
-def parse_expense_csvs(csvs):
-    """
-    Reads the provided expense csv files into a dataframe
-    :param List[str] csvs: list of csv files to parse
-    :return: A dataframe with all the CSV information
-    :rtype: DataFrame
-    """
-    col_names = ['date', 'transaction', 'debit', 'credit', 'balance']
-    data_types = {
-        'data': str,
-        'transaction': str,
-        'debit': float,
-        'credit': float,
-        'balance': float
-    }
-
-    def str_to_float(x):
-        return 0 if x == '' else float(x)
-
-    converters = {
-        'date': pd.to_datetime,
-        'debit': str_to_float,
-        'credit': str_to_float,
-        'balance': str_to_float
-    }
-
-    expense_data = list()
-    for csv in csvs:
-        abs_path = os.path.abspath(csv)
-        if not os.path.exists(abs_path):
-            print("The file {} does not exist, this data will not be included.".format(csv))
-            continue
-        expense_data.append(
-            pd.read_csv(abs_path,
-                        names=col_names,
-                        index_col=False,
-                        dtype=data_types,
-                        converters=converters)
-        )
-
-    if len(expense_data) == 0:
-        exit(1)
-
-    return pd.concat(expense_data)
-
-
 if __name__ == '__main__':
     args = parse_args()
-    df = parse_expense_csvs(args.expenses)
+    expense_dfs = get_expense_data(args)
+    connection, cursor = connect_db(args.database)
+    skipped = categorize_expenses(expense_dfs, connection, cursor)
+    calculate_categorical_expenses(expense_dfs, skipped)
