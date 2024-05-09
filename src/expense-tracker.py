@@ -4,7 +4,7 @@ import argparse
 
 from db_functions import connect_db
 from expenses import get_expense_data, categorize_expenses, calculate_categorical_expenses
-from constants import DEFAULT_DB
+from constants import DEFAULT_DB, Categories
 
 
 def parse_args():
@@ -34,6 +34,13 @@ def parse_args():
                         help='Path to database used for categorizing the inputted expenses.',
                         default=DEFAULT_DB)
 
+    parser.add_argument('-c', '--categories',
+                        type=str,
+                        help='A text file containing the categories to use for categorizing expenses. '
+                             'Each category must be on a newline. If no categories file is provided, a '
+                             'set of default categories will be used.',
+                        default=None)
+
     parsed_args = parser.parse_args()
 
     if parsed_args.month is not None and not (1 <= parsed_args.month <= 12):
@@ -47,5 +54,6 @@ if __name__ == '__main__':
     args = parse_args()
     expense_dfs = get_expense_data(args)
     connection, cursor = connect_db(args.database)
-    skipped = categorize_expenses(expense_dfs, connection, cursor)
-    calculate_categorical_expenses(expense_dfs, skipped, cursor)
+    categories = Categories(path=args.categories)
+    skipped = categorize_expenses(expense_dfs, connection, cursor, categories)
+    calculate_categorical_expenses(expense_dfs, skipped, cursor, categories)

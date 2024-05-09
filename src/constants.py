@@ -28,11 +28,13 @@ class Categories(object):
             'restaurants',
             'insurance']
 
-    def __init__(self):
+    def __init__(self, path=None):
         self.full_to_short = dict()
         self.short_to_full = dict()
 
-        for full_name in self._all:
+        self.categories = self.load_categories(path) if path is not None else self._defaults
+
+        for full_name in self.categories:
             shortcut = ''
             for letter in full_name:
                 shortcut += letter
@@ -57,6 +59,11 @@ class Categories(object):
             print('- {} ({})'.format(full, short))
         print()
 
-    @classmethod
-    def all(cls) -> list:
-        return sorted(cls._all)
+    def all(self) -> list:
+        return sorted(self.categories)
+
+    @staticmethod
+    def load_categories(path):
+        with open(path, 'r') as f:
+            categories = [line.strip() for line in f.readlines()]
+        return categories
