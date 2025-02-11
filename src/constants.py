@@ -14,19 +14,19 @@ class CsvCols(object):
 
 
 class Categories(object):
-    _all = ['phone',
-            'internet',
-            'loans',
-            'utilities',
-            'gas',
-            'groceries',
-            'vehicle',
-            'entertainment',
-            'extras',
-            'clothing',
-            'subscriptions',
-            'restaurants',
-            'insurance']
+    _defaults = ['phone',
+                 'internet',
+                 'loans',
+                 'utilities',
+                 'gas',
+                 'groceries',
+                 'vehicle',
+                 'entertainment',
+                 'extras',
+                 'clothing',
+                 'subscriptions',
+                 'restaurants',
+                 'insurance']
 
     def __init__(self, path=None):
         self.full_to_short = dict()
